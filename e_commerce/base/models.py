@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-import random
+from django.dispatch import receiver
+from django.db.models.signals import pre_save,post_save,pre_delete,post_delete
+from django.core.mail import send_mail
+from dirtyfields import DirtyFieldsMixin
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -30,7 +33,7 @@ class Product(models.Model):
 
 
 
-class Order(models.Model):
+class Order(models.Model,DirtyFieldsMixin):
     customer = models.ForeignKey(User,on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     @property
@@ -56,7 +59,15 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order,on_delete=models.CASCADE,related_name='items')
     product = models.ForeignKey(Product,on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=8,decimal_places=2)
+    price = models.DecimalField(max_digits=8,decimal_places=2,blank=True)
+
+    @property
+    def subtotal(self): # for each item not whole order
+        return self.quantity * self.price
+    
+    def save(self,*args,**kwargs):
+        self.price = self.product.price
+        super().save(*args,**kwargs)
 
     def __str__(self):
         return self.product.name        
@@ -76,16 +87,7 @@ class Payment(models.Model):
         ("bank_transfer","Bank Transfer")
     ]
 
-    STATUS_CHOICES = [
-    ("pending", "Pending"),
-    ("paid", "Paid"),
-    ("shipped", "Shipped"),
-    ("delivered", "Delivered"),
-    ("cancelled", "Cancelled"),
-    ]
-
     method = models.CharField(max_length=50,choices=METHOD_CHOICES)
-    status = models.CharField(max_length=50,choices=STATUS_CHOICES,default='pending')
     created = models.DateTimeField(auto_now_add = True)
     updated = models.DateTimeField(auto_now = True)
     transaction_id = models.CharField(max_length=100, null=True, unique=True)
@@ -101,7 +103,7 @@ class Cart(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     @property
     def total_price(self):
-        return sum(item.quantity * item.price for item in self.items.all())
+        return sum(item.subtotal for item in self.items.all())
 
     def __str__(self):
         return self.customer.username if self.customer else "Guest Cart"
@@ -113,12 +115,87 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product,on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=8,decimal_places=2)
+    price = models.DecimalField(max_digits=8,decimal_places=2,blank=True)
+
+    @property
+    def subtotal(self): # for each item not whole cart
+        return self.quantity * self.price
+    
+    def save(self,*args,**kwargs):
+        self.price = self.product.price
+        
+        super().save(*args,**kwargs)
 
     def __str__(self):
         return self.product.name
 
-    
 
+
+
+
+
+
+
+
+
+
+
+
+
+####################### Signals ########################
+
+
+@receiver(post_save,sender=User)
+def user_post_save_receiver(sender,instance,created,*args,**kwargs):
+    if created:
+        send_mail(
+    subject="Welcome!",
+    message=f"Hey {instance.username} Thank you for signing up in our e-commerce website",
+    from_email="xtramarket9@gmail.com",
+    recipient_list=[instance.email],
+    fail_silently=False,
+)
+    else:
+        print("You account information has been updated")
+
+
+@receiver(post_save,sender=Order)
+def order_post_save_receiver(sender,instance,created,*args,**kwargs):
+    if created:
+        send_mail(
+    subject="Your Order",
+    message=f"Hello {instance.customer.username}, we wanted to inform you that your order has been placed successfully",
+    from_email="xtramarket9@gmail.com",
+    recipient_list=[instance.customer.email],
+    fail_silently=False,
+)
+    
+    else:
+        if "status" in instance.get_dirty_fields():
+            if instance.status == 'shipped':
+                message = f"Hello {instance.customer.username}, you order has been shipped and will be delivered soon.\nStay Tuned"
+            elif instance.status == 'delivered':
+                message = f"Hello {instance.customer.username}, you order has been delivered to your place"
+            elif instance.status == 'cancelled':
+                message = f"Hello {instance.customer.username}, you order has been been cancelled"
+            elif instance.status == 'pending':
+                message = f"Hello {instance.customer.username}, you order is now pending"
+            elif instance.status == 'paid':
+                message = f"Hello {instance.customer.username}, you order has been paid successfully"
+            else:
+                return
+        
+        else:
+            return 
+        
+        send_mail(
+    subject="Your Order",
+    message=message,
+    from_email="xtramarket9@gmail.com",
+    recipient_list=[instance.customer.email],
+    fail_silently=False,
+)
+
+    
 
 

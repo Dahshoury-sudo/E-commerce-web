@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_save,post_save,pre_delete,post_delete
 from django.core.mail import send_mail
 from dirtyfields import DirtyFieldsMixin
+from django.conf import settings
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -33,7 +34,7 @@ class Product(models.Model):
 
 
 
-class Order(models.Model,DirtyFieldsMixin):
+class Order(DirtyFieldsMixin,models.Model):
     customer = models.ForeignKey(User,on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     @property
@@ -101,6 +102,7 @@ class Payment(models.Model):
 class Cart(models.Model):
     customer = models.ForeignKey(User,on_delete=models.SET_NULL,null=True)
     created = models.DateTimeField(auto_now_add=True)
+
     @property
     def total_price(self):
         return sum(item.subtotal for item in self.items.all())
@@ -151,7 +153,7 @@ def user_post_save_receiver(sender,instance,created,*args,**kwargs):
         send_mail(
     subject="Welcome!",
     message=f"Hey {instance.username} Thank you for signing up in our e-commerce website",
-    from_email="xtramarket9@gmail.com",
+    from_email= settings.DEFAULT_FROM_EMAIL,
     recipient_list=[instance.email],
     fail_silently=False,
 )
@@ -165,10 +167,10 @@ def order_post_save_receiver(sender,instance,created,*args,**kwargs):
         send_mail(
     subject="Your Order",
     message=f"Hello {instance.customer.username}, we wanted to inform you that your order has been placed successfully",
-    from_email="xtramarket9@gmail.com",
+    from_email=settings.DEFAULT_FROM_EMAIL,
     recipient_list=[instance.customer.email],
     fail_silently=False,
-)
+    )
     
     else:
         if "status" in instance.get_dirty_fields():
@@ -191,7 +193,7 @@ def order_post_save_receiver(sender,instance,created,*args,**kwargs):
         send_mail(
     subject="Your Order",
     message=message,
-    from_email="xtramarket9@gmail.com",
+    from_email=settings.DEFAULT_FROM_EMAIL,
     recipient_list=[instance.customer.email],
     fail_silently=False,
 )

@@ -9,3 +9,7 @@ class IsCreator(BasePermission):
             return request.user.email in ['mohamed1@gmail.com','mohamed@gmail.com']
         else:
             return False
+
+class UnAuthenticated(BasePermission):
+    def has_permission(self, request, view):
+        return not request.user.is_authenticated

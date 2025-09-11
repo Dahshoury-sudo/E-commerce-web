@@ -82,11 +82,11 @@ WSGI_APPLICATION = 'e_commerce.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'e-commerce',
+        'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': '123456',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'PASSWORD': 'NsEeVnVXIimeHSjlyEXaFPUhodkzKWQe',
+        'HOST': 'yamanote.proxy.rlwy.net',
+        'PORT': '20257'
     }
 }
 

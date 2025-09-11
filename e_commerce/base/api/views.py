@@ -41,21 +41,6 @@ def register(request):
 
 
 
-# @api_view(['POST'])
-# @permission_classes(UnAuthenticated)
-# def login(request):
-#     email = request.data.get('email').strip()
-#     password = request.data.get('password').strip()
-
-#     user = authenticate(request,email=email,password=password)
-
-#     if user == None:
-#         return Response({"message":"either the email or password is wrong"},status=status.HTTP_400_BAD_REQUEST)
-#     else:
-#         login(request,user)
-#         return Response({"message":"login successful"},status=status.HTTP_200_OK)
-
-
 
 @api_view(['GET'])
 @permission_classes([IsCreator])

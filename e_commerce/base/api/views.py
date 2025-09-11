@@ -43,7 +43,7 @@ def register(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsCreator])
+@permission_classes([AllowAny])
 def get_all_products(request):
     products = models.Product.objects.all()
     serializer = ProductSerializer(products,many=True)

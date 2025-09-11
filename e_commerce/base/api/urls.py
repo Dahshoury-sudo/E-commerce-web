@@ -7,6 +7,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     #########################################################################
     path('products/',views.get_all_products),
-    path('SignUp/',views.register),
+    path('signup/',views.register),
+    path('add-item/',views.add_item_to_cart),
 
 ]

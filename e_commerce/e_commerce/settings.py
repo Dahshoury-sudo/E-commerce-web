@@ -55,26 +55,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOW_ALL_ORIGINS = True # Allow All urls to access our api
+CORS_ALLOW_ALL_ORIGINS = True # Allow All urls to access our api
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",   # React dev server
-    "https://myfrontend.com",  # production frontend
-    "http://localhost:5173",
-    "https://localhost:5173",
-]
-
-# Optional: allow Authorization headers for tokens
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
-    "accept",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
 
 ROOT_URLCONF = 'e_commerce.urls'
 

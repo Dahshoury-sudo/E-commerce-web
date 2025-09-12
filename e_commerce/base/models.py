@@ -8,6 +8,7 @@ from django.db.models import Avg
 from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary.models import CloudinaryField
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -42,7 +43,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField()
     categories = models.ManyToManyField(Category,related_name='products',blank=True)
     tags = models.ManyToManyField(Tag,related_name='products',blank=True)
-    img = models.ImageField(null=True,default='default_product.png')
+    img = CloudinaryField("products",null=True)
 
     def save(self,*args,**kwargs):
         if self.discount and 0 <= self.discount <= 100:

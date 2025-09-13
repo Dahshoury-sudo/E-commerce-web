@@ -17,3 +17,26 @@ urlpatterns = [
     path('recent-reviews/',views.get_recent_reviews),
 
 ]
+
+urlpatterns = [
+    # Auth
+    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/signup/',views.register),
+
+    # Product
+    path('products/',views.get_all_products),
+    
+    # Cart
+    path('cart/add/',views.add_item_to_cart),
+    path('cart/remove/',views.remove_item_from_cart),
+    path('cart/edit/',views.edit_cart),
+
+    # Wishlist
+    path('wishlist/add/',views.add_item_to_wishlist),
+    path('wishlist/remove/',views.remove_item_from_wishlist),
+
+    # Review
+    path('reviews/recent/',views.get_recent_reviews),
+
+]

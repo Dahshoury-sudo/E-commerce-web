@@ -9,6 +9,13 @@ from . serializers import ProductSerializer,RecentReviewSerializer
 
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_products(request):
+    products = models.Product.objects.all()
+    serializer = ProductSerializer(products,many=True)
+    return Response({"products":serializer.data},status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 @permission_classes([UnAuthenticated])
 def register(request):
@@ -39,7 +46,10 @@ def register(request):
     except:
         return Response({"error":"error occurred try again"})
 
-############### Cart
+
+
+
+################################ Cart
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_item_to_cart(request):
@@ -75,7 +85,7 @@ def edit_cart(request):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_item_from_cart(request):
+def remove_item_from_cart(request):
     user = request.user
     product_id = request.data.get('product_id')
     if not product_id:
@@ -88,32 +98,14 @@ def delete_item_from_cart(request):
     
     cart_item.delete()
     return Response({"message":"item deleted successfully"},status=status.HTTP_200_OK)
-
-####################
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_all_products(request):
-    products = models.Product.objects.all()
-    serializer = ProductSerializer(products,many=True)
-    return Response({"products":serializer.data},status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_recent_reviews(request):
-    reviews = models.Review.objects.all()[0:11]
-    serializer = RecentReviewSerializer(reviews,many=True)
-    return Response({"reviews":serializer.data},status=status.HTTP_200_OK)
+#####################################
 
 
 
-
-#### Wishlist
+############################# Wishlist
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def add_item_to_wishlist(request): # pk of the product that he wants to add
+def add_item_to_wishlist(request): 
     product_id = request.data.get('product_id')
     user = request.user
     try:
@@ -133,36 +125,57 @@ def add_item_to_wishlist(request): # pk of the product that he wants to add
             wishlist.products.add(product)
             return Response({"message":"item added to wishlist"},status=status.HTTP_200_OK)
         
-
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def remove_item_from_wishlist(request,pk):
+def remove_item_from_wishlist(request):
     user = request.user
+    product_id = request.data.get('product_id')
     try:
-        product = models.Product.objects.get(id=pk)
+        product = models.Product.objects.get(id=product_id)
+        
     except models.Product.DoesNotExist:
         return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
     
-
     try:
         wishlist = models.WishList.objects.get(customer=user)
+        
     except models.WishList.DoesNotExist:
         return Response({"error": "Wishlist not found"}, status=status.HTTP_404_NOT_FOUND)
-    
 
-    try:
-        product = models.Product.objects.get(id=pk)
-    except:
-        return Response({"error":"product not found"},status=status.HTTP_404_NOT_FOUND)
-    
 
-    if not wishlist.products.filter(id=pk).exists():
+    if not wishlist.products.filter(id=product_id).exists():
         return Response({"error": "Item not in wishlist"}, status=status.HTTP_400_BAD_REQUEST)
     
-
     wishlist.products.remove(product) # auto saves no need to save maniually
     return Response({"message":"item deleted from wishlist"},status=status.HTTP_200_OK)
+######################################
 
-###########
 
+############################ Reviews
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_recent_reviews(request):
+    reviews = models.Review.objects.all()[0:11]
+    serializer = RecentReviewSerializer(reviews,many=True)
+    return Response({"reviews":serializer.data},status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_review(request):
+    user = request.user
+    comment = request.data.get('comment')
+    product_id = request.data.get('product_id')
+    rating = request.data.get('rating')
+    product = models.Product.objects.get(id=product_id)
+    
+    has_bought = True if models.Order.objects.filter(customer=user,product=product).exists() else False
+
+    if has_bought:
+        try:
+            review = models.Review.objects.create(customer=user,comment=comment,rating=rating,product=product)
+        except:
+            return Response({"error":"failed to submit review"},status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"error":"you can't review an item that you didn't buy"},status=status.HTTP_400_BAD_REQUEST)
+
+####################################

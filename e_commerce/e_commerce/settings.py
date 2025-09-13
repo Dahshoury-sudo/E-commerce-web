@@ -63,10 +63,6 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True # Allow All urls to access our api
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8000/",
-    "https://e-commerce-web-production-ead4.up.railway.app/"
-]
 
 ROOT_URLCONF = 'e_commerce.urls'
 

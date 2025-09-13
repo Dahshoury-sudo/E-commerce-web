@@ -55,15 +55,15 @@ def register(request):
 def add_item_to_cart(request):
     user = request.user
     product_id = request.data.get('product_id')
-    product_quantity = int(request.data.get('product_quantity'))
+    quantity = int(request.data.get('quantity'))
 
     product = models.Product.objects.get(id = product_id)
     
     cart,cart_created = models.Cart.objects.get_or_create(customer = user)
-    cart_item,item_created = models.CartItem.objects.get_or_create(cart = cart,product=product,defaults={"quantity":product_quantity,"price":product.final_price})
+    cart_item,item_created = models.CartItem.objects.get_or_create(cart = cart,product=product,defaults={"quantity":quantity,"price":product.final_price})
 
     if not item_created:
-        cart_item.quantity += product_quantity
+        cart_item.quantity += quantity
         cart_item.save()
 
     return Response({"message":"item added to cart"},status=status.HTTP_201_CREATED)

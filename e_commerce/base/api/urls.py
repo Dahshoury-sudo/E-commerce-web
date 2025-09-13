@@ -12,8 +12,8 @@ urlpatterns = [
     path('add-item/',views.add_item_to_cart),
     path('remove-item-from-cart/',views.remove_item_from_cart),
     path('edit-cart/',views.edit_cart),
-    path('add-item-to-wishlist/<str:pk>',views.add_item_to_wishlist),
-    path('remove-item-from-wishlist/<str:pk>',views.remove_item_from_wishlist),
+    path('add-item-to-wishlist',views.add_item_to_wishlist),
+    path('remove-item-from-wishlist',views.remove_item_from_wishlist),
     path('recent-reviews/',views.get_recent_reviews),
 
 ]

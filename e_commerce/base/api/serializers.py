@@ -1,7 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-# from base.models import 
-from base.models import Product
+from base.models import Product,Review,WishList
 
 class ProductSerializer(ModelSerializer):
     img_url = serializers.SerializerMethodField()
@@ -14,3 +13,18 @@ class ProductSerializer(ModelSerializer):
     
     def get_img_url(self, obj):
         return obj.img.url if obj.img else None
+
+
+class RecentReviewSerializer(ModelSerializer):
+    customer = serializers.StringRelatedField()
+    product = serializers.StringRelatedField()
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+
+class WishListSerializer(ModelSerializer):
+    class Meta:
+        model = WishList
+        fields = '__all__'

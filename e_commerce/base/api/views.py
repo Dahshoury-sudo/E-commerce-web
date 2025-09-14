@@ -5,10 +5,10 @@ from .permissions import IsCreator,UnAuthenticated
 from rest_framework.permissions import IsAdminUser,IsAuthenticated,AllowAny
 from django.contrib.auth import authenticate,login,logout
 from base import models
-from . serializers import ProductSerializer,RecentReviewSerializer
+from . serializers import ProductSerializer,RecentReviewSerializer,CartItemSerializer,WishListSerializer
 
 
-
+############################### Product
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_all_products(request):
@@ -16,6 +16,18 @@ def get_all_products(request):
     serializer = ProductSerializer(products,many=True)
     return Response({"products":serializer.data},status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_product_info(request):
+    product_id = request.data.get('product_id')
+    product = models.Product.objects.get(id=product_id)
+    serializer = ProductSerializer(product)
+    return Response({"product":serializer.data},status=status.HTTP_200_OK)
+#################################
+
+
+
+################################# Auth
 @api_view(['POST'])
 @permission_classes([UnAuthenticated])
 def register(request):
@@ -45,7 +57,7 @@ def register(request):
     
     except:
         return Response({"error":"error occurred try again"})
-
+####################################
 
 
 
@@ -98,6 +110,14 @@ def remove_item_from_cart(request):
     
     cart_item.delete()
     return Response({"message":"item deleted successfully"},status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def show_cart_items(request):
+    user = request.user
+    cart_items = models.CartItem.objects.filter(cart__customer = user)
+    serializer = CartItemSerializer(cart_items,many=True)
+    return Response({"items":serializer.data},status=status.HTTP_200_OK)
 #####################################
 
 
@@ -148,6 +168,14 @@ def remove_item_from_wishlist(request):
     
     wishlist.products.remove(product) # auto saves no need to save maniually
     return Response({"message":"item deleted from wishlist"},status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def show_wishlist_items(request):
+    user = request.user
+    wishlist = models.WishList.objects.get(customer = user)
+    serializer = WishListSerializer(wishlist)
+    return Response({"wishlist":serializer.data},status=status.HTTP_200_OK)
 ######################################
 
 

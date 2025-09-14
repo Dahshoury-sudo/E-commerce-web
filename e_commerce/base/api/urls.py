@@ -10,15 +10,18 @@ urlpatterns = [
 
     # Product
     path('products/',views.get_all_products),
+    path('products/get/',views.get_product_info),
     
     # Cart
     path('cart/add/',views.add_item_to_cart),
     path('cart/remove/',views.remove_item_from_cart),
     path('cart/edit/',views.edit_cart),
+    path('cart/items/',views.show_cart_items),
 
     # Wishlist
     path('wishlist/add/',views.add_item_to_wishlist),
     path('wishlist/remove/',views.remove_item_from_wishlist),
+    path('wishlist/items/',views.show_wishlist_items),
 
     # Review
     path('reviews/recent/',views.get_recent_reviews),

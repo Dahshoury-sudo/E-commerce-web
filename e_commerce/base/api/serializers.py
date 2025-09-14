@@ -33,9 +33,7 @@ class WishListSerializer(ModelSerializer):
     class Meta:
         model = WishList
         fields = "__all__"
-    
-    def get_img_url(self,obj):
-        return obj.img.url if obj.img else None
+
 
 class RecentReviewSerializer(ModelSerializer):
     customer = serializers.StringRelatedField()

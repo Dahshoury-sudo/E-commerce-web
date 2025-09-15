@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAdminUser,IsAuthenticated,AllowAny
 from django.contrib.auth import authenticate,login,logout
 from base import models
 from . serializers import ProductSerializer,RecentReviewSerializer,CartItemSerializer,WishListSerializer
-
+from django.shortcuts import get_object_or_404
 
 ############################### Product
 @api_view(['GET'])
@@ -226,10 +226,11 @@ def place_order(request):
     }
 
     items = request.data.get('items')
-    print(billing_details)
 
     try:
-        order = models.Order.objects.create(**billing_details)
+        order,created = models.Order.objects.get_or_create(**billing_details)
+        if not created:
+            return Response({"error":"you already placed an order with these products"},status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         print("ORDER CREATION ERROR:", str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -245,5 +246,20 @@ def place_order(request):
     
     return Response({"message":"order places successfully"},status=status.HTTP_201_CREATED)
 
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def cancel_order(request):
+    user = request.user
+    order_id = request.data.get('order_id')
+    order = get_object_or_404(models.Order,id=order_id,customer=user)
+    if order.customer == user:
+        if order.status != 'cancelled':
+            order.status = "cancelled"
+            order.save()
+            return Response({"message":"order cancelled"},status = status.HTTP_200_OK)
+        else:
+            return Response({"error":"order is already cancelled"},status =status.HTTP_400_BAD_REQUEST)
 
+    else:
+        return Response({"error":"you can't delete someone's else order"},status = status.HTTP_200_OK)
 ###################################

@@ -20,6 +20,7 @@ urlpatterns = [
 
     # Order
     path('order/add/',views.place_order),
+    path('order/cancel/',views.cancel_order),
 
     # Wishlist
     path('wishlist/add/',views.add_item_to_wishlist),

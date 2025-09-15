@@ -196,14 +196,54 @@ def add_review(request):
     rating = request.data.get('rating')
     product = models.Product.objects.get(id=product_id)
     
-    has_bought = True if models.Order.objects.filter(customer=user,product=product).exists() else False
+    has_bought = True if models.Order.objects.filter(customer=user,items__product = product).exists() else False
 
     if has_bought:
         try:
             review = models.Review.objects.create(customer=user,comment=comment,rating=rating,product=product)
-        except:
-            return Response({"error":"failed to submit review"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"review created successfully"},status=status.HTTP_201_CREATED)
+        except :
+            return Response({"error":"you already reviewed this item"},status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"error":"you can't review an item that you didn't buy"},status=status.HTTP_400_BAD_REQUEST)
-
 ####################################
+
+
+
+############################# Order
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def place_order(request):
+    user = request.user
+    # billing details
+    billing_details ={
+    "customer" : user,
+    "full_name" : request.data.get('full_name'),
+    "full_address" : request.data.get('full_address'),
+    "country" : request.data.get('country'),
+    "phone_number" : request.data.get('phone_number'),
+    "order_notes" : request.data.get('order_notes'),
+    }
+
+    items = request.data.get('items')
+    print(billing_details)
+
+    try:
+        order = models.Order.objects.create(**billing_details)
+    except Exception as e:
+        print("ORDER CREATION ERROR:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    for order_item in items:
+        product_id = order_item["product_id"]
+        quantity = order_item["quantity"]
+        product = models.Product.objects.get(id=product_id)
+        try:
+            models.OrderItem.objects.create(order = order,product = product,quantity=quantity,price=product.final_price)
+        except:
+            return Response({"error":"error creating the orderitem"},status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"message":"order places successfully"},status=status.HTTP_201_CREATED)
+
+
+###################################

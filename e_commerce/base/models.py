@@ -88,6 +88,13 @@ class Order(DirtyFieldsMixin,models.Model):
     customer = models.ForeignKey(User,on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
+    # Biling details
+    full_name = models.CharField(max_length=200,null=True)
+    full_address = models.CharField(max_length=300,null=True)
+    order_notes = models.TextField(null=True)
+    phone_number = models.CharField(max_length=25,null=True)
+    country = models.CharField(max_length=100,null=True)
+
     @property
     def total_price(self):
         return sum(item.quantity * item.price for item in self.items.all())

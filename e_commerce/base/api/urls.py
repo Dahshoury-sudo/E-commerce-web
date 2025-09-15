@@ -18,6 +18,9 @@ urlpatterns = [
     path('cart/edit/',views.edit_cart),
     path('cart/items/',views.show_cart_items),
 
+    # Order
+    path('order/add/',views.place_order),
+
     # Wishlist
     path('wishlist/add/',views.add_item_to_wishlist),
     path('wishlist/remove/',views.remove_item_from_wishlist),
@@ -25,5 +28,6 @@ urlpatterns = [
 
     # Review
     path('reviews/recent/',views.get_recent_reviews),
+    path('reviews/add/',views.add_review),
 
 ]

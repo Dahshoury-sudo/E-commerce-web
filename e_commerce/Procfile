@@ -1,3 +1,29 @@
-web: gunicorn e_commerce.wsgi --log-file - 
-#or works good with external database
-web: python manage.py migrate && gunicorn e_commerce.wsgi
+import os
+from decouple import config
+
+# ... existing code ...
+
+DEBUG = False
+ALLOWED_HOSTS = ['*']  # Railway will provide the domain
+
+# Database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME', default='railway'),
+        'USER': config('DATABASE_USER', default='postgres'),
+        'PASSWORD': config('DATABASE_PASSWORD', default=''),
+        'HOST': config('DATABASE_HOST', default='localhost'),
+        'PORT': config('DATABASE_PORT', default='5432'),
+    }
+}
+
+# Static files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+# Media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'

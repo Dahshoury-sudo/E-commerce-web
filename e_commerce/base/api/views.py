@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .permissions import UnAuthenticated
 from rest_framework.permissions import IsAdminUser,IsAuthenticated,AllowAny
-from django.contrib.auth import authenticate,login,logout
 from base import models
+from django.db import IntegrityError
 from . serializers import ProductSerializer,RecentReviewSerializer,CartItemSerializer,WishListSerializer
 from django.shortcuts import get_object_or_404
 
@@ -40,10 +40,10 @@ def register(request):
         return Response({"error":"passwords doesn't match"},status=status.HTTP_400_BAD_REQUEST)
     
     if models.User.objects.filter(username=username).exists():
-        return Response({"error":"username already exists"},status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error":"Registeration failed,Try again"},status=status.HTTP_400_BAD_REQUEST)
     
     if models.User.objects.filter(email=email).exists():
-        return Response({"error":"email already exists"},status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error":"Registeration failed,Try again"},status=status.HTTP_400_BAD_REQUEST)
 
 
     try:
@@ -68,6 +68,8 @@ def add_item_to_cart(request):
     user = request.user
     product_id = request.data.get('product_id')
     quantity = int(request.data.get('quantity'))
+    if quantity < 0 :
+        return Response({"error":"quantity can't be negative"},status=status.HTTP_400_BAD_REQUEST) 
 
     product = models.Product.objects.get(id = product_id)
     
@@ -85,7 +87,10 @@ def add_item_to_cart(request):
 def edit_cart(request):
     user = request.user
     product_id = request.data.get('product_id')
-    quantity = request.data.get('quantity')
+    quantity = int(request.data.get('quantity'))
+
+    if quantity < 0 :
+        return Response({"error":"quantity can't be negative"},status=status.HTTP_400_BAD_REQUEST) 
     try:
         cartitem = models.CartItem.objects.get(product_id = product_id,cart__customer = user )
     except:
@@ -140,7 +145,7 @@ def add_item_to_wishlist(request):
         return Response({"message":"item added to wishlist"},status=status.HTTP_200_OK)
     else:
         if wishlist.products.filter(id=product_id).exists():
-            return Response({"message":"Item already in your wishlist"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"Item already in your wishlist"},status=status.HTTP_409_CONFLICT)
         else:
             wishlist.products.add(product)
             return Response({"message":"item added to wishlist"},status=status.HTTP_200_OK)
@@ -202,8 +207,12 @@ def add_review(request):
         try:
             review = models.Review.objects.create(customer=user,comment=comment,rating=rating,product=product)
             return Response({"message":"review created successfully"},status=status.HTTP_201_CREATED)
-        except :
-            return Response({"error":"you already reviewed this item"},status=status.HTTP_400_BAD_REQUEST)
+        
+        except IntegrityError:
+            return Response({"error":"you already reviewed this item"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e :
+            return Response({"error": f"unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response({"error":"you can't review an item that you didn't buy"},status=status.HTTP_400_BAD_REQUEST)
 ####################################
@@ -261,5 +270,5 @@ def cancel_order(request):
             return Response({"error":"order is already cancelled"},status =status.HTTP_400_BAD_REQUEST)
 
     else:
-        return Response({"error":"you can't delete someone's else order"},status = status.HTTP_200_OK)
+        return Response({"error":"you can't delete someone's else order"},status = status.HTTP_403_FORBIDDEN)
 ###################################

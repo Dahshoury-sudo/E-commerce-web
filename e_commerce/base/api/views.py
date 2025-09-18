@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .permissions import UnAuthenticated
 from rest_framework.permissions import IsAdminUser,IsAuthenticated,AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 from base import models
 from django.db import IntegrityError
 from . serializers import ProductSerializer,RecentReviewSerializer,CartItemSerializer,WishListSerializer
@@ -57,6 +58,21 @@ def register(request):
     
     except:
         return Response({"error":"error occurred try again"})
+
+@api_view(['POST'])
+@permission_classes([UnAuthenticated])
+def logout(request):
+    refresh_token = request.data.get('refresh')
+    if not refresh_token:
+        return Response({"error": "Refresh token required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response({"message": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
+    except Exception:
+        return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
 ####################################
 
 

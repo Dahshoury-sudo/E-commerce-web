@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from dirtyfields import DirtyFieldsMixin
 from django.db.models import Avg
 from decimal import Decimal
+import uuid
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from cloudinary.models import CloudinaryField

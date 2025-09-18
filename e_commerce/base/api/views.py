@@ -60,7 +60,7 @@ def register(request):
         return Response({"error":"error occurred try again"})
 
 @api_view(['POST'])
-@permission_classes([UnAuthenticated])
+@permission_classes([IsAuthenticated])
 def logout(request):
     refresh_token = request.data.get('refresh')
     if not refresh_token:
@@ -72,7 +72,6 @@ def logout(request):
         return Response({"message": "Logout successful"}, status=status.HTTP_205_RESET_CONTENT)
     except Exception:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-
 ####################################
 
 

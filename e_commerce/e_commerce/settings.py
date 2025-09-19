@@ -25,7 +25,7 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3(wbc3se=md6z+!e@8q$(=xfa3ic#=ulw5jmj70=8)hs+&7!e&'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,16 +91,6 @@ WSGI_APPLICATION = 'e_commerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'NsEeVnVXIimeHSjlyEXaFPUhodkzKWQe',
-        'HOST': 'yamanote.proxy.rlwy.net',
-        'PORT': '20257'
-    }
-}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

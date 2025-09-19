@@ -135,7 +135,7 @@ def remove_item_from_cart(request):
 @permission_classes([IsAuthenticated])
 def show_cart_items(request):
     user = request.user
-    cart_items = models.CartItem.objects.filter(cart__customer = user)
+    cart_items = models.CartItem.objects.filter(cart__customer = user).order_by('id')
     serializer = CartItemSerializer(cart_items,many=True)
     return Response({"items":serializer.data},status=status.HTTP_200_OK)
 #####################################

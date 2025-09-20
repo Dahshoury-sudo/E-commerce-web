@@ -205,54 +205,56 @@ class CartItem(models.Model):
 
 ####################### Signals ########################
 
-
-@receiver(post_save,sender=User)
-def user_post_save_receiver(sender,instance,created,*args,**kwargs):
-    if created:
-        send_mail(
-    subject="Welcome!",
-    message=f"Hey {instance.username} Thank you for signing up in our e-commerce website",
-    from_email= settings.DEFAULT_FROM_EMAIL,
-    recipient_list=[instance.email],
-    fail_silently=True,
-)
-    else:
-        print("You account information has been updated")
+##### Commented cuz it takes so much time and slows the web #####
 
 
-@receiver(post_save,sender=Order)
-def order_post_save_receiver(sender,instance,created,*args,**kwargs):
-    if created:
-        send_mail(
-    subject="Your Order",
-    message=f"Hello {instance.customer.username}, we wanted to inform you that your order has been placed successfully",
-    from_email=settings.DEFAULT_FROM_EMAIL,
-    recipient_list=[instance.customer.email],
-    fail_silently=True,
-    )
+# @receiver(post_save,sender=User)
+# def user_post_save_receiver(sender,instance,created,*args,**kwargs):
+#     if created:
+#         send_mail(
+#     subject="Welcome!",
+#     message=f"Hey {instance.username} Thank you for signing up in our e-commerce website",
+#     from_email= settings.DEFAULT_FROM_EMAIL,
+#     recipient_list=[instance.email],
+#     fail_silently=True,
+# )
+#     else:
+#         print("You account information has been updated")
+
+
+# @receiver(post_save,sender=Order)
+# def order_post_save_receiver(sender,instance,created,*args,**kwargs):
+#     if created:
+#         send_mail(
+#     subject="Your Order",
+#     message=f"Hello {instance.customer.username}, we wanted to inform you that your order has been placed successfully",
+#     from_email=settings.DEFAULT_FROM_EMAIL,
+#     recipient_list=[instance.customer.email],
+#     fail_silently=True,
+#     )
     
-    else:
-        if "status" in instance.get_dirty_fields():
-            if instance.status == 'shipped':
-                message = f"Hello {instance.customer.username}, you order has been shipped and will be delivered soon.\nStay Tuned"
-            elif instance.status == 'delivered':
-                message = f"Hello {instance.customer.username}, you order has been delivered to your place"
-            elif instance.status == 'cancelled':
-                message = f"Hello {instance.customer.username}, you order has been been cancelled"
-            elif instance.status == 'pending':
-                message = f"Hello {instance.customer.username}, you order is now pending"
-            elif instance.status == 'paid':
-                message = f"Hello {instance.customer.username}, you order has been paid successfully"
-            else:
-                return
+#     else:
+#         if "status" in instance.get_dirty_fields():
+#             if instance.status == 'shipped':
+#                 message = f"Hello {instance.customer.username}, you order has been shipped and will be delivered soon.\nStay Tuned"
+#             elif instance.status == 'delivered':
+#                 message = f"Hello {instance.customer.username}, you order has been delivered to your place"
+#             elif instance.status == 'cancelled':
+#                 message = f"Hello {instance.customer.username}, you order has been been cancelled"
+#             elif instance.status == 'pending':
+#                 message = f"Hello {instance.customer.username}, you order is now pending"
+#             elif instance.status == 'paid':
+#                 message = f"Hello {instance.customer.username}, you order has been paid successfully"
+#             else:
+#                 return
         
-        else:
-            return 
+#         else:
+#             return 
         
-        send_mail(
-    subject="Your Order",
-    message=message,
-    from_email=settings.DEFAULT_FROM_EMAIL,
-    recipient_list=[instance.customer.email],
-    fail_silently=True,
-)
+#         send_mail(
+#     subject="Your Order",
+#     message=message,
+#     from_email=settings.DEFAULT_FROM_EMAIL,
+#     recipient_list=[instance.customer.email],
+#     fail_silently=True,
+# )

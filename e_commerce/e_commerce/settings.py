@@ -30,8 +30,6 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-
-
 AUTH_USER_MODEL = 'base.User'
 
 # Application definition
@@ -65,8 +63,11 @@ MIDDLEWARE = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
-CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS").split(",")
+# ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(",")
+# CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS").split(",")
+
+ALLOWED_HOSTS = ["*"]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 ROOT_URLCONF = 'e_commerce.urls'

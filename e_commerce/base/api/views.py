@@ -65,7 +65,7 @@ def register(request):
         return Response({"error":"error occurred try again"})
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def logout(request):
     refresh_token = request.data.get('refresh')
     if not refresh_token:

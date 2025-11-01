@@ -1,15 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.dispatch import receiver
+import uuid
+from cloudinary.models import CloudinaryField
 from django.db.models.signals import pre_save,post_save,pre_delete,post_delete
 from django.core.mail import send_mail
 from dirtyfields import DirtyFieldsMixin
 from django.db.models import Avg
 from decimal import Decimal
-import uuid
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
-from cloudinary.models import CloudinaryField
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -144,7 +144,8 @@ class Payment(models.Model):
         ("debit_card","Debit Card"),
         ("cash","Cash"),
         ("paypal","PayPal"),
-        ("bank_transfer","Bank Transfer")
+        ("bank_transfer","Bank Transfer"),
+        ("stripe","Stripe")
     ]
 
     method = models.CharField(max_length=50,choices=METHOD_CHOICES)

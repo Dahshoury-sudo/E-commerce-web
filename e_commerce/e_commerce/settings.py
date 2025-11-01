@@ -28,7 +28,7 @@ load_dotenv()
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 AUTH_USER_MODEL = 'base.User'
 
@@ -147,8 +147,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-# MEDIA_URL = '/images/'
+
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
@@ -186,6 +185,11 @@ cloudinary.config(
     api_secret = config('api_secret'),
 )
 
+STATIC_URL = '/static/'
+MEDIA_URL = '/images/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles/'
+
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SECURE = True
@@ -194,3 +198,13 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# settings.py
+STRIPE_SECRET_KEY = config('stripe_secret_key')
+# This is for you (backend)
+
+STRIPE_PUBLISHABLE_KEY = config('stripe_publishable_key')
+# You will give this to the frontend team
+
+STRIPE_WEBHOOK_SECRET = config('stripe_webhook_secret', default='')
+# Webhook secret for verifying Stripe webhook events

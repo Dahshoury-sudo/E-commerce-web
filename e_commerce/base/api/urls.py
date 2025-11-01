@@ -32,4 +32,8 @@ urlpatterns = [
     path('reviews/recent/',views.get_recent_reviews),
     path('reviews/add/',views.add_review),
 
+    # Payment (Stripe)
+    path('payment/create-checkout-session/',views.create_checkout_session),
+    path('payment/stripe-webhook/',views.stripe_webhook),
+
 ]

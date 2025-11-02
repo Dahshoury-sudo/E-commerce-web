@@ -273,7 +273,8 @@ def place_order(request):
         except:
             return Response({"error":"error creating the orderitem"},status=status.HTTP_400_BAD_REQUEST)
     
-    return Response({"message":"order places successfully"},status=status.HTTP_201_CREATED)
+    return Response({"message":"order places successfully","order_id":order.id},status=status.HTTP_201_CREATED)
+
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

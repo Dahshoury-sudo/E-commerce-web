@@ -54,7 +54,7 @@ class Product(models.Model):
         super().save(*args,**kwargs)
 
     @property
-    def average_rating(self):
+    def average_rating_value(self):
         return self.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
     
     def __str__(self):

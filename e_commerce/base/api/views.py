@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
+import time
 from rest_framework import status
 from .permissions import UnAuthenticated
 from rest_framework.permissions import IsAdminUser,IsAuthenticated,AllowAny
@@ -11,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 import stripe
+from django.db.models import Avg
 from django.conf import settings
 from django.http import JsonResponse
 
@@ -18,9 +20,13 @@ from django.http import JsonResponse
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_all_products(request):
-    products = models.Product.objects.all()
-    serializer = ProductSerializer(products,many=True)
-    return Response({"products":serializer.data},status=status.HTTP_200_OK)
+    products = (
+        models.Product.objects
+        .prefetch_related('categories', 'tags')
+        .annotate(average_rating=Avg('reviews__rating'))
+    )
+    serializer = ProductSerializer(products, many=True)
+    return Response({"products": serializer.data}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

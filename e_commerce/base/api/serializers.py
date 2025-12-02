@@ -4,7 +4,7 @@ from base.models import Product,Review,WishList,CartItem,OrderItem
 
 class ProductSerializer(ModelSerializer):
     img_url = serializers.SerializerMethodField()
-    average_rating = serializers.FloatField(read_only=True)  # comes from @property
+    average_rating = serializers.FloatField(read_only=True)
     categories = serializers.StringRelatedField(many=True)  # uses __str__ from Category
     tags = serializers.StringRelatedField(many=True)   # uses __str__ from Tag
     class Meta:

@@ -142,6 +142,17 @@ def remove_item_from_cart(request):
     cart_item.delete()
     return Response({"message":"item deleted successfully"},status=status.HTTP_200_OK)
 
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def clear_cart(request):
+    cart = get_object_or_404(models.Cart, customer=request.user)
+    cart.items.all().delete()
+    return Response({"message": "All items removed from cart"}, 
+        status=status.HTTP_204_NO_CONTENT)
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def show_cart_items(request):

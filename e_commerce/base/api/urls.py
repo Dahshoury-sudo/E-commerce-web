@@ -18,6 +18,7 @@ urlpatterns = [
     path('cart/remove/',views.remove_item_from_cart),
     path('cart/edit/',views.edit_cart),
     path('cart/items/',views.show_cart_items),
+    path('cart/clear/',views.clear_cart),
 
     # Order
     path('order/add/',views.place_order),

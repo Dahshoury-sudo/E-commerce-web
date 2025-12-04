@@ -342,8 +342,8 @@ def create_checkout_session(request):
         return Response({"error": "Payment already exists for this order"}, status=status.HTTP_400_BAD_REQUEST)
     
     # Get success and cancel URLs from request or use defaults
-    success_url = request.data.get('success_url', 'https://vegecommerce-ct1s.vercel.app/payment-success/')
-    cancel_url = request.data.get('cancel_url', 'https://vegecommerce-ct1s.vercel.app/payment-cancel/')
+    success_url = request.data.get('success_url', 'https://vegecommerce-production.up.railway.app/payment-success/')
+    cancel_url = request.data.get('cancel_url', 'https://vegecommerce-production.up.railway.app/payment-cancel/')
     
     # Build line items from order items
     line_items = []

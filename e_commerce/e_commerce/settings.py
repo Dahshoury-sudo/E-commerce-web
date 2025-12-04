@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 from decouple import config
 import cloudinary
+import os
+import dj_database_url
 import cloudinary.uploader
 import cloudinary.api
 
@@ -95,15 +97,19 @@ WSGI_APPLICATION = 'e_commerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('db_name'),
+#         'USER': config('db_user'),
+#         'PASSWORD': config('db_password'),
+#         'HOST': config('db_host'),
+#         'PORT': config('db_port')
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('db_name'),
-        'USER': config('db_user'),
-        'PASSWORD': config('db_password'),
-        'HOST': config('db_host'),
-        'PORT': config('db_port')
-    }
+'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
 
 

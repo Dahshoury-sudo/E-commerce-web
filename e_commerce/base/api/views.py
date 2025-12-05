@@ -315,157 +315,157 @@ def cancel_order(request):
 
 
 # ############################### Payment
-# stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def create_checkout_session(request):
-#     """
-#     Create a Stripe Checkout Session for an order.
-#     Expects: { "order_id": <order_id>, "success_url": "...", "cancel_url": "..." }
-#     """
-#     user = request.user
-#     order_id = request.data.get('order_id')
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_checkout_session(request):
+    """
+    Create a Stripe Checkout Session for an order.
+    Expects: { "order_id": <order_id>, "success_url": "...", "cancel_url": "..." }
+    """
+    user = request.user
+    order_id = request.data.get('order_id')
     
-#     if not order_id:
-#         return Response({"error": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+    if not order_id:
+        return Response({"error": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
     
-#     try:
-#         order = models.Order.objects.get(id=order_id, customer=user)
-#     except models.Order.DoesNotExist:
-#         return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        order = models.Order.objects.get(id=order_id, customer=user)
+    except models.Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
     
-#     # Check if payment already exists for this order
-#     if hasattr(order, 'payment'):
-#         return Response({"error": "Payment already exists for this order"}, status=status.HTTP_400_BAD_REQUEST)
+    # Check if payment already exists for this order
+    if hasattr(order, 'payment'):
+        return Response({"error": "Payment already exists for this order"}, status=status.HTTP_400_BAD_REQUEST)
     
-#     # Get success and cancel URLs from request or use defaults
-#     success_url = request.data.get('success_url', 'https://vegecommerce2.vercel.app/payment-success/')
-#     cancel_url = request.data.get('cancel_url', 'https://vegecommerce2.vercel.app/payment-cancel/')
+    # Get success and cancel URLs from request or use defaults
+    success_url = request.data.get('success_url', 'https://vegecommerce-ct1s.vercel.app/payment-success/')
+    cancel_url = request.data.get('cancel_url', 'https://vegecommerce-ct1s.vercel.app/payment-cancel/')
     
-#     # Build line items from order items
-#     line_items = []
-#     for item in order.items.all():
-#         line_items.append({
-#             'price_data': {
-#                 'currency': 'usd',
-#                 'product_data': {
-#                     'name': item.product.name,
-#                     'description': item.product.description[:200] if item.product.description else '',
-#                 },
-#                 # Price must be in cents
-#                 'unit_amount': int(Decimal(str(item.price)) * 100), 
-#             },
-#             'quantity': item.quantity,
-#         })
+    # Build line items from order items
+    line_items = []
+    for item in order.items.all():
+        line_items.append({
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {
+                    'name': item.product.name,
+                    'description': item.product.description[:200] if item.product.description else '',
+                },
+                # Price must be in cents
+                'unit_amount': int(Decimal(str(item.price)) * 100), 
+            },
+            'quantity': item.quantity,
+        })
     
-#     if not line_items:
-#         return Response({"error": "Order has no items"}, status=status.HTTP_400_BAD_REQUEST)
+    if not line_items:
+        return Response({"error": "Order has no items"}, status=status.HTTP_400_BAD_REQUEST)
 
-#     try:
-#         # Create the Stripe Checkout Session
-#         checkout_session = stripe.checkout.Session.create(
-#             payment_method_types=['card'],
-#             line_items=line_items,
-#             mode='payment',
-#             # Store order ID in client_reference_id for webhook
-#             client_reference_id=str(order.id),
-#             success_url=success_url + f'?session_id={{CHECKOUT_SESSION_ID}}',
-#             cancel_url=cancel_url,
-#             metadata={
-#                 'order_id': str(order.id),
-#                 'customer_id': str(user.id),
-#             }
-#         )
+    try:
+        # Create the Stripe Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            # Store order ID in client_reference_id for webhook
+            client_reference_id=str(order.id),
+            success_url=success_url + f'?session_id={{CHECKOUT_SESSION_ID}}',
+            cancel_url=cancel_url,
+            metadata={
+                'order_id': str(order.id),
+                'customer_id': str(user.id),
+            }
+        )
 
-#         return Response({
-#             'session_id': checkout_session.id,
-#             'url': checkout_session.url,
-#             'order_id': order.id
-#         }, status=status.HTTP_200_OK)
+        return Response({
+            'session_id': checkout_session.id,
+            'url': checkout_session.url,
+            'order_id': order.id
+        }, status=status.HTTP_200_OK)
 
-#     except stripe.error.StripeError as e:
-#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-#     except Exception as e:
-#         return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except stripe.error.StripeError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def stripe_webhook(request):
-#     """
-#     Handle Stripe webhook events.
-#     This endpoint is exempt from CSRF protection as Stripe sends requests from external servers.
-#     """
-#     payload = request.body
-#     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-#     webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def stripe_webhook(request):
+    """
+    Handle Stripe webhook events.
+    This endpoint is exempt from CSRF protection as Stripe sends requests from external servers.
+    """
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
     
-#     if not webhook_secret:
-#         return JsonResponse({"error": "Webhook secret not configured"}, status=500)
+    if not webhook_secret:
+        return JsonResponse({"error": "Webhook secret not configured"}, status=500)
 
-#     try:
-#         event = stripe.Webhook.construct_event(
-#             payload, sig_header, webhook_secret
-#         )
-#     except ValueError as e:
-#         # Invalid payload
-#         return JsonResponse({"error": f"Invalid payload: {str(e)}"}, status=400)
-#     except stripe.error.SignatureVerificationError as e:
-#         # Invalid signature
-#         return JsonResponse({"error": f"Invalid signature: {str(e)}"}, status=400)
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return JsonResponse({"error": f"Invalid payload: {str(e)}"}, status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return JsonResponse({"error": f"Invalid signature: {str(e)}"}, status=400)
 
-#     # Handle the checkout.session.completed event
-#     if event['type'] == 'checkout.session.completed':
-#         session = event['data']['object']
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
         
-#         try:
-#             order_id = session.get('client_reference_id') or session.get('metadata', {}).get('order_id')
-#             if not order_id:
-#                 return JsonResponse({"error": "Order ID not found in session"}, status=400)
+        try:
+            order_id = session.get('client_reference_id') or session.get('metadata', {}).get('order_id')
+            if not order_id:
+                return JsonResponse({"error": "Order ID not found in session"}, status=400)
             
-#             # Convert to int if it's a string
-#             try:
-#                 order_id = int(order_id)
-#             except (ValueError, TypeError):
-#                 return JsonResponse({"error": "Invalid order ID format"}, status=400)
+            # Convert to int if it's a string
+            try:
+                order_id = int(order_id)
+            except (ValueError, TypeError):
+                return JsonResponse({"error": "Invalid order ID format"}, status=400)
             
-#             order = models.Order.objects.get(id=order_id)
+            order = models.Order.objects.get(id=order_id)
             
-#             # Check if payment already exists
-#             if hasattr(order, 'payment'):
-#                 return JsonResponse({"message": "Payment already exists"}, status=200)
+            # Check if payment already exists
+            if hasattr(order, 'payment'):
+                return JsonResponse({"message": "Payment already exists"}, status=200)
             
-#             # Get payment intent details
-#             payment_intent_id = session.get('payment_intent')
-#             amount_total = Decimal(session.get('amount_total', 0)) / Decimal(100)  # Convert from cents to dollars
+            # Get payment intent details
+            payment_intent_id = session.get('payment_intent')
+            amount_total = Decimal(session.get('amount_total', 0)) / Decimal(100)  # Convert from cents to dollars
             
-#             # Create Payment record
-#             payment = models.Payment.objects.create(
-#                 customer=order.customer,
-#                 order=order,
-#                 amount=amount_total,
-#                 method='stripe',
-#                 transaction_id=payment_intent_id or session.get('id', '')
-#             )
+            # Create Payment record
+            payment = models.Payment.objects.create(
+                customer=order.customer,
+                order=order,
+                amount=amount_total,
+                method='stripe',
+                transaction_id=payment_intent_id or session.get('id', '')
+            )
             
-#             # Update order status to paid
-#             order.status = 'paid'
-#             order.save()
+            # Update order status to paid
+            order.status = 'paid'
+            order.save()
             
-#             return JsonResponse({"message": "Payment processed successfully", "payment_id": payment.id}, status=200)
+            return JsonResponse({"message": "Payment processed successfully", "payment_id": payment.id}, status=200)
             
-#         except models.Order.DoesNotExist:
-#             return JsonResponse({"error": "Order not found"}, status=404)
-#         except Exception as e:
-#             return JsonResponse({"error": f"Error processing payment: {str(e)}"}, status=500)
+        except models.Order.DoesNotExist:
+            return JsonResponse({"error": "Order not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Error processing payment: {str(e)}"}, status=500)
     
-#     elif event['type'] == 'payment_intent.succeeded':
-#         # Handle successful payment intent
-#         payment_intent = event['data']['object']
-#         return JsonResponse({"message": "Payment intent succeeded"}, status=200)
+    elif event['type'] == 'payment_intent.succeeded':
+        # Handle successful payment intent
+        payment_intent = event['data']['object']
+        return JsonResponse({"message": "Payment intent succeeded"}, status=200)
     
-#     else:
-#         # Unhandled event type
-#         return JsonResponse({"message": f"Unhandled event type: {event['type']}"}, status=200)
+    else:
+        # Unhandled event type
+        return JsonResponse({"message": f"Unhandled event type: {event['type']}"}, status=200)

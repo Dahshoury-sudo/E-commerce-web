@@ -108,20 +108,20 @@ WSGI_APPLICATION = 'e_commerce.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('db_name'),
-        'USER': config('db_user'),
-        'PASSWORD': config('db_password'),
-        'HOST': config('db_host'),
-        'PORT': config('db_port')
-    }
-}
-
 # DATABASES = {
-# 'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('db_name'),
+#         'USER': config('db_user'),
+#         'PASSWORD': config('db_password'),
+#         'HOST': config('db_host'),
+#         'PORT': config('db_port')
+#     }
 # }
+
+DATABASES = {
+'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+}
 
 
 # Password validation

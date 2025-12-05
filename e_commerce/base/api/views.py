@@ -11,6 +11,7 @@ from . serializers import ProductSerializer,RecentReviewSerializer,CartItemSeria
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
+from django.db import connection
 import stripe
 from django.db.models import Avg
 from django.conf import settings
@@ -20,16 +21,13 @@ from django.http import JsonResponse
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_all_products(request):
-    start = time.time()
     products = (
         models.Product.objects
         .prefetch_related('categories', 'tags')
         .annotate(average_rating=Avg('reviews__rating'))
     )
     serializer = ProductSerializer(products, many=True)
-    end = time.time()
-    print("Processing Time:", (end - start) * 1000, "ms")
-    return Response({"products": serializer.data}, status=status.HTTP_200_OK)
+    return Response({"products": serializer.data,"query":len(connection.queries)}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

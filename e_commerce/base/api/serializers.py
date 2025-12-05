@@ -3,7 +3,7 @@ from rest_framework import serializers
 from base.models import Product,Review,WishList,CartItem,OrderItem
 
 class ProductSerializer(ModelSerializer):
-    img_url = serializers.SerializerMethodField()
+    img_url = serializers.CharField(source='img.url', read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     categories = serializers.StringRelatedField(many=True)  # uses __str__ from Category
     tags = serializers.StringRelatedField(many=True)   # uses __str__ from Tag
@@ -11,8 +11,6 @@ class ProductSerializer(ModelSerializer):
         model = Product
         exclude = ['img']
     
-    def get_img_url(self, obj):
-        return obj.img.url if obj.img else None
 
 class ProductSerializerForWishlist(ModelSerializer):
     average_rating = serializers.FloatField(read_only = True)

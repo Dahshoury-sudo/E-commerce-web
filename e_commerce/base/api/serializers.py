@@ -66,11 +66,11 @@ class CartItemSerializer(ModelSerializer):
 
 
 
-class OrderSerializer(ModelSerializer):
-    customer = serializers.StringRelatedField()
-    class Meta:
-        model = Order
-        fields = ['id','customer','status','total_price']
+# class OrderSerializer(ModelSerializer):
+#     customer = serializers.StringRelatedField()
+#     class Meta:
+#         model = Order
+#         fields = ['id','customer','status','total_price']
 
 
 
@@ -184,6 +184,7 @@ class OrderItemSerializer(ModelSerializer):
 class OrderSerializer(ModelSerializer):
     items = OrderItemSerializer(read_only=True,many=True)
     email = serializers.EmailField(source='customer.email', read_only=True)
+    customer = serializers.StringRelatedField()
     
     # 2. Get Total Price: This looks for the 'total_price' property on your Order model
     total_price = serializers.ReadOnlyField(read_only=True)

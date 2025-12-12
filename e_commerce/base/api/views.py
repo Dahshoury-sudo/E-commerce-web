@@ -552,7 +552,15 @@ def get_total_sales(request):
 @permission_classes([AllowAny])
 def get_all_orders_num(request):
     orders_num = models.Order.objects.count()
-    return Response({'orders':orders_num},status=status.HTTP_200_OK)
+    orders_num_pending = models.Order.objects.filter(status = 'pending').count()
+    orders_num_paid = models.Order.objects.filter(status = 'paid').count()
+    orders_num_delivered = models.Order.objects.filter(status = 'delievered').count()
+    orders_num_shipped = models.Order.objects.filter(status = 'shipped').count()
+    return Response({'orders':orders_num,
+                     'shipped':orders_num_shipped,
+                     'delivered':orders_num_delivered,
+                     'paid':orders_num_paid,
+                     'pending':orders_num_pending},status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -583,9 +591,45 @@ def get_total_stock(request):
 # @permission_classes([IsAdminUser])
 @permission_classes([AllowAny])
 def get_latest_orders(request):
-    orders = models.Order.objects.all().order_by('-id')[:8]
+    orders = models.Order.objects.all().order_by('-id')
     serializer = OrderSerializer(orders,many=True)
     return Response({'orders':serializer.data},status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+# @permission_classes([IsAdminUser])
+@permission_classes([AllowAny])
+def get_all_reviews(request):
+    reviews = models.Review.objects.prefetch_related('customer','product')
+    serializer = serializers.ReviewSerializer(reviews,many=True)
+    return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+@api_view(['GET','PATCH'])
+# @permission_classes([IsAdminUser])
+@permission_classes([AllowAny])
+def order_detail_action(request,pk):
+    order = get_object_or_404(models.Order.objects.prefetch_related('items__product'),id=pk)
+    if request.method == 'GET':
+        serializer = serializers.OrderSerializer(order)
+        return Response({'data':serializer.data},status=status.HTTP_200_OK)
+        
+    elif request.method == 'PATCH':
+        serializer = OrderSerializer(order, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            # Check if the serializer actually found any matching fields
+            if not serializer.validated_data:
+                return Response(
+                    {'error': 'No valid fields provided for update.'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            serializer.save()
+            return Response({'message': 'Order status updated', 'new_status': order.status},status=status.HTTP_200_OK)
+        else:
+            return Response({'message':'error in status name'},status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['POST'])

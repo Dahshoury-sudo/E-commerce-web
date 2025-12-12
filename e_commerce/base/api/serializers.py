@@ -12,6 +12,7 @@ class ProductSerializer(ModelSerializer):
         exclude = ['img']
     
 
+
 class ProductSerializerForWishlist(ModelSerializer):
     average_rating = serializers.FloatField(read_only = True)
     img_url = serializers.SerializerMethodField()
@@ -26,11 +27,14 @@ class ProductSerializerForWishlist(ModelSerializer):
     def get_img_url(self, obj):
         return obj.img.url if obj.img else None
 
+
+
 class WishListSerializer(ModelSerializer):
     products = ProductSerializerForWishlist(many=True,read_only = True)
     class Meta:
         model = WishList
         fields = "__all__"
+
 
 
 class RecentReviewSerializer(ModelSerializer):
@@ -61,11 +65,13 @@ class CartItemSerializer(ModelSerializer):
         return obj.product.id if obj.product else None
 
 
+
 class OrderSerializer(ModelSerializer):
     customer = serializers.StringRelatedField()
     class Meta:
         model = Order
         fields = ['id','customer','status','total_price']
+
 
 
 class AddProductSerializer(ModelSerializer):
@@ -104,7 +110,6 @@ class AddProductSerializer(ModelSerializer):
     def get_img_url(self,obj):
         return obj.img.url if obj.img else None
     
-
 
 
 class DetailProductSerializer(ModelSerializer):
@@ -153,14 +158,48 @@ class DetailProductSerializer(ModelSerializer):
 
 
 
-
 class LowProductSerializer(ModelSerializer):
     class Meta:
         model = Product
         fields = ['id','name','stock']
     
+
+
 class TopSalesSerializer(ModelSerializer):
     sales = serializers.IntegerField(read_only=True)
     class Meta:
         model = Product
         fields = ['id','name','sales']
+
+
+
+class OrderItemSerializer(ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product_name', 'quantity', 'price', 'subtotal']
+
+
+
+class OrderSerializer(ModelSerializer):
+    items = OrderItemSerializer(read_only=True,many=True)
+    email = serializers.EmailField(source='customer.email', read_only=True)
+    
+    # 2. Get Total Price: This looks for the 'total_price' property on your Order model
+    total_price = serializers.ReadOnlyField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+    
+
+
+
+class ReviewSerializer(ModelSerializer):
+    customer_name = serializers.CharField(source = 'customer.username')
+    customer_email = serializers.CharField(source = 'customer.email')
+    product_name = serializers.CharField(source = 'product.name')
+    class Meta:
+        model = Review
+        fields = '__all__'
+

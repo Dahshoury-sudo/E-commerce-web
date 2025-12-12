@@ -556,11 +556,13 @@ def get_all_orders_num(request):
     orders_num_paid = models.Order.objects.filter(status = 'paid').count()
     orders_num_delivered = models.Order.objects.filter(status = 'delievered').count()
     orders_num_shipped = models.Order.objects.filter(status = 'shipped').count()
+    orders_num_cancelled = models.Order.objects.filter(status = 'cancelled').count()
     return Response({'orders':orders_num,
                      'shipped':orders_num_shipped,
                      'delivered':orders_num_delivered,
                      'paid':orders_num_paid,
-                     'pending':orders_num_pending},status=status.HTTP_200_OK)
+                     'pending':orders_num_pending,
+                     'cancelled':orders_num_cancelled},status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

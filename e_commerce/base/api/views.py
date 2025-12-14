@@ -19,6 +19,7 @@ from . import serializers
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
+from rest_framework.pagination import PageNumberPagination
 from django.db import connection
 import stripe
 from django.conf import settings
@@ -548,7 +549,6 @@ def get_all_products_num(request):
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
-
 def get_all_users_num(request):
     users_num = models.User.objects.count()
     return Response({'users':users_num},status=status.HTTP_200_OK)
@@ -575,9 +575,17 @@ def get_latest_orders(request):
     )
     .order_by('-id')
 )
+    paginator = PageNumberPagination()
+    paginator.page_size = 10  # Set how many orders you want per page
+    
+    # 3. Create the "Page" (slice the queryset based on the URL ?page=x)
+    result_page = paginator.paginate_queryset(orders, request)
 
-    serializer = OrderSerializer(orders,many=True)
-    return Response({'orders':serializer.data},status=status.HTTP_200_OK)
+    # 4. Serialize ONLY the data for the current page
+    serializer = OrderSerializer(result_page, many=True)
+
+    # 5. Return the response with pagination metadata (Next, Previous, Count)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])

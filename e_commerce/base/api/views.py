@@ -265,41 +265,6 @@ def add_review(request):
 
 
 ############################# Order
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def place_order(request):
-#     user = request.user
-#     # billing details
-#     billing_details ={
-#     "customer" : user,
-#     "full_name" : request.data.get('full_name'),
-#     "full_address" : request.data.get('full_address'),
-#     "country" : request.data.get('country'),
-#     "phone_number" : request.data.get('phone_number'),
-#     "order_notes" : request.data.get('order_notes'),
-#     }
-
-#     items = request.data.get('items')
-
-#     try:
-#         order,created = models.Order.objects.get_or_create(**billing_details)
-#         if not created:
-#             return Response({"error":"you already placed an order with these products"},status=status.HTTP_400_BAD_REQUEST)
-#     except Exception as e:
-#         print("ORDER CREATION ERROR:", str(e))
-#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-#     for order_item in items:
-#         product_id = order_item["product_id"]
-#         quantity = order_item["quantity"]
-#         product = models.Product.objects.get(id=product_id)
-#         try:
-#             models.OrderItem.objects.create(order = order,product = product,quantity=quantity,price=product.final_price)
-#         except:
-#             return Response({"error":"error creating the orderitem"},status=status.HTTP_400_BAD_REQUEST)
-    
-#     return Response({"message":"order places successfully","order_id":order.id},status=status.HTTP_201_CREATED)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -540,16 +505,25 @@ def stripe_webhook(request):
 ############### DASHBOARD ##################
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+    return Response({
+        "email": user.email,
+        "is_admin": user.is_staff,
+    })
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
 def get_total_sales(request):
     total_sales_value = models.Payment.objects.aggregate(total_sales = Sum('amount'))['total_sales']
     return Response({'total_sales':total_sales_value},status=status.HTTP_200_OK) if total_sales_value is not None else 0
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_all_orders_num(request):
     orders_num = models.Order.objects.count()
     orders_num_pending = models.Order.objects.filter(status = 'pending').count()
@@ -566,36 +540,33 @@ def get_all_orders_num(request):
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_all_products_num(request):
     products_num = models.Product.objects.count()
     return Response({'total_products':products_num},status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
+
 def get_all_users_num(request):
     users_num = models.User.objects.count()
     return Response({'users':users_num},status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_total_stock(request):
     stock_count = models.Product.objects.aggregate(total_stock = Sum('stock'))['total_stock']
     return Response({'total_stock':stock_count},status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_latest_orders(request):
     orders = (
     models.Order.objects
-    .select_related('customer')              # fixes customer.email
+    .select_related('customer') # fixes customer.email
     .prefetch_related(
         Prefetch(
             'items',
@@ -610,8 +581,7 @@ def get_latest_orders(request):
 
 
 @api_view(['GET'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_all_reviews(request):
     reviews = models.Review.objects.prefetch_related('customer','product')
     serializer = serializers.ReviewSerializer(reviews,many=True)
@@ -619,8 +589,7 @@ def get_all_reviews(request):
 
 
 @api_view(['GET','PATCH'])
-# @permission_classes([IsAdminUser])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def order_detail_action(request,pk):
     if request.method == 'GET':
         order = get_object_or_404(models.Order.objects.prefetch_related('items__product'),id=pk)
@@ -650,7 +619,7 @@ def order_detail_action(request,pk):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def create_product(request):
     print(request.data) # Debugging: See what the frontend sent
     # 1. Pass the data (text + image) to the serializer
@@ -667,7 +636,7 @@ def create_product(request):
 
 
 @api_view(['PUT','GET','DELETE'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def product_detail_action(request, pk):
     # 1. Get the specific product from the DB using the ID (pk)
     product = get_object_or_404(models.Product, id=pk)
@@ -693,7 +662,7 @@ def product_detail_action(request, pk):
 
 ### Dashboard Charts
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_low_chart_info(request):
     #low products in stock < 20
     low_products = models.Product.objects.filter(stock__lte = 20).only('stock','name').order_by('stock')
@@ -702,7 +671,7 @@ def get_low_chart_info(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_top_sales_chart_info(request):
     top_products = models.Product.objects.filter(
     orderitem__order__status='paid'  # Only count paid orders
@@ -715,7 +684,7 @@ def get_top_sales_chart_info(request):
     
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def get_sales_orders_chart(request):
 
 # 1. Date Calculation (Same as before)

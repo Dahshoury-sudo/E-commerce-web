@@ -6,7 +6,7 @@ from datetime import timedelta
 import datetime
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
-from django.db.models import Count,F,Avg,Sum
+from django.db.models import Count,F,Avg,Sum,Prefetch
 from rest_framework import status
 from .permissions import UnAuthenticated
 from django.db.models.functions import Coalesce
@@ -593,7 +593,18 @@ def get_total_stock(request):
 # @permission_classes([IsAdminUser])
 @permission_classes([AllowAny])
 def get_latest_orders(request):
-    orders = models.Order.objects.all().order_by('-id')
+    orders = (
+    models.Order.objects
+    .select_related('customer')              # fixes customer.email
+    .prefetch_related(
+        Prefetch(
+            'items',
+            queryset=models.OrderItem.objects.select_related('product')
+        )
+    )
+    .order_by('-id')
+)
+
     serializer = OrderSerializer(orders,many=True)
     return Response({'orders':serializer.data},status=status.HTTP_200_OK)
 
@@ -611,26 +622,30 @@ def get_all_reviews(request):
 # @permission_classes([IsAdminUser])
 @permission_classes([AllowAny])
 def order_detail_action(request,pk):
-    order = get_object_or_404(models.Order.objects.prefetch_related('items__product'),id=pk)
     if request.method == 'GET':
+        order = get_object_or_404(models.Order.objects.prefetch_related('items__product'),id=pk)
         serializer = serializers.OrderSerializer(order)
         return Response({'data':serializer.data},status=status.HTTP_200_OK)
         
     elif request.method == 'PATCH':
-        serializer = OrderSerializer(order, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            # Check if the serializer actually found any matching fields
-            if not serializer.validated_data:
-                return Response(
-                    {'error': 'No valid fields provided for update.'}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            serializer.save()
-            return Response({'message': 'Order status updated', 'new_status': order.status},status=status.HTTP_200_OK)
+        order = models.Order.objects.get(id=pk)
+        order_status = order.status
+        new_status = request.data.get('status')
+        if order_status == new_status:
+            return Response({"message":"status is already the same"},status=status.HTTP_400_BAD_REQUEST)
+        
+        if new_status == 'paid':
+            return Response({"message":"paid can only be put with payment not manually"},status=status.HTTP_402_PAYMENT_REQUIRED)
         else:
-            return Response({'message':'error in status name'},status=status.HTTP_400_BAD_REQUEST)
+            if order_status != 'paid':
+                if new_status not in ["cancelled","delivered",'shipped','paid','pending']:
+                    return Response({"message":"error in status name"},status=status.HTTP_400_BAD_REQUEST)
+                order.status = new_status
+                order.save()  
+                return Response({'message': 'Order status updated', 'new_status': order.status},status=status.HTTP_200_OK)
+            
+            return Response ({"message":"you can't change paid orders status"},status=status.HTTP_400_BAD_REQUEST)
+            
 
 
 
